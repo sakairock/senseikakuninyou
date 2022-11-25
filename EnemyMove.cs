@@ -32,18 +32,10 @@ public class EnemyMove : MonoBehaviour
     private float dis_x;
     private float LATdis_Rx;
     private float LATdis_Lx;
-    //クールタイムカウント変数
-    private float coolTime = 0.0f;
-    //クールタイムライン
-    private float cool_LimTime = 2.0f;
-    //攻撃チャージタイムカウント変数
-    private float chargeTime = 0.0f;
-    //攻撃チャージタイムライン
-    private float charge_LimTime = 2.0f;
     //攻撃判定フラグ
-    private bool ATflg = false;
+    public bool ATflg = false;
     //接地判定フラグ
-    private bool isGround = false;
+    public bool isGround = false;
     //Rigidbody2D取得
     private Rigidbody2D rb2d = null;
     //他スクリプト変数を取得する為の変数
@@ -109,121 +101,96 @@ public class EnemyMove : MonoBehaviour
 
     public void ShortAttack() //近距離攻撃関数
     {
-        //攻撃フラグがオフで射程距離に入ってない場合
-        if (dis_x > ShortAttackRange && ATflg == false)
+        //攻撃フラグがオフなら
+        if (ATflg == false)
         {
-            //射程距離までプレイヤーとの距離を詰める
-            while (dis_x > ShortAttackRange)
+            //射程距離に入ってない場合
+            if (dis_x > ShortAttackRange)
             {
-                posEN = Vector2.MoveTowards(posEN, posPL, speed * Time.deltaTime); //移動処理
+                //射程距離までプレイヤーとの距離を詰める
+                while (dis_x > ShortAttackRange)
+                {
+                    posEN = Vector2.MoveTowards(posEN, posPL, speed * Time.deltaTime); //移動処理
+                }
             }
-            if (isGround)
+            //既に射程距離なら
+            else if (dis_x <= 200 && ATflg)
             {
-                //攻撃判定振る(未実装)
-                Debug.Log("近距離攻撃");
+                if (isGround)
+                {
+                    //攻撃判定振る(未実装)
+                    Debug.Log("近距離攻撃");
+                }
+                ATflg = true; //攻撃フラグオン
             }
-            ATflg = true; //攻撃フラグオン
         }
-        //攻撃フラグオフで既に射程距離なら
-        else if (dis_x <= 200 && ATflg == false)
-        {
-            if (isGround)
-            {
-                //攻撃判定振る(未実装)
-                Debug.Log("近距離攻撃");
-            }
-            ATflg = true; //攻撃フラグオン
-        }
+        
     }
     
     public void MiddleAttack() //中距離攻撃関数
     {
-        //チャージタイム
-        chargeTime += Time.deltaTime;
-        //攻撃フラグがオフ&チャージ済みで射程距離に入ってない場合
-        if (dis_x > MiddleAttackRange && ATflg == false && chargeTime >= charge_LimTime)
+        //攻撃フラグがオフなら
+        if (ATflg == false)
         {
-            //射程距離までプレイヤーとの距離を詰める
-            while (dis_x > MiddleAttackRange)
+            //射程距離に入ってない場合
+            if (dis_x > MiddleAttackRange)
             {
-                posEN = Vector2.MoveTowards(posEN, posPL, speed * Time.deltaTime); //移動処理
+                //射程距離までプレイヤーとの距離を詰める
+                while (dis_x > MiddleAttackRange)
+                {
+                    posEN = Vector2.MoveTowards(posEN, posPL, speed * Time.deltaTime); //移動処理
+                }
             }
-            if (isGround)
+            //既に射程距離なら
+            else if (dis_x <= MiddleAttackRange)
             {
-                //攻撃判定振る(未実装)
-                Debug.Log("中距離攻撃");
+                if (isGround)
+                {
+                    //攻撃判定振る(未実装)
+                    Debug.Log("中距離攻撃");
+                }
+                ATflg = true; //攻撃フラグオン
             }
-            chargeTime = 0.0f; //チャージタイムリセット
-            ATflg = true; //攻撃フラグオン
         }
-        //攻撃フラグオフ&チャージ済みで既に射程距離なら
-        else if (dis_x <= MiddleAttackRange && ATflg == false && chargeTime >= charge_LimTime)
-        {
-            if (isGround)
-            {
-                //攻撃判定振る(未実装)
-                Debug.Log("中距離攻撃");
-            }
-            chargeTime = 0.0f; //チャージタイムリセット
-            ATflg = true; //攻撃フラグオン
-        }
+        
     }
     
     public void LongAttack() //遠距離攻撃関数
     {
-        //攻撃フラグがオフで指定ポイントでは無い場合
-        if (ENx != LAT_Rx && ENx != LAT_Lx && ATflg == false)
+        //攻撃フラグがオフなら実行
+        if (ATflg == false)
         {
-            //左の指定ポイントより右の指定ポイントが近い又は指定ポイント距離が同じ場合
-            if (LATdis_Rx <= LATdis_Lx)
+            //指定ポイントでは無い場合
+            if (ENx != LAT_Rx && ENx != LAT_Lx)
             {
-                while (ENx != LAT_Rx)
+                //左の指定ポイントより右の指定ポイントが近い又は指定ポイント距離が同じ場合
+                if (LATdis_Rx <= LATdis_Lx)
                 {
-                    //指定ポイントまで移動
-                    posEN = Vector2.MoveTowards(posEN, posLAT_R, speed * Time.deltaTime); //移動処理
+                    while (ENx != LAT_Rx)
+                    {
+                        //指定ポイントまで移動
+                        posEN = Vector2.MoveTowards(posEN, posLAT_R, speed * Time.deltaTime); //移動処理
+                    }
+                }
+                //右の指定ポイントより左の指定ポイントが近い場合
+                else if (LATdis_Rx > LATdis_Lx)
+                {
+                    while (ENx != LAT_Lx)
+                    {
+                        //指定ポイントまで移動
+                        posEN = Vector2.MoveTowards(posEN, posLAT_L, speed * Time.deltaTime); //移動処理
+                    }
                 }
             }
-            //右の指定ポイントより左の指定ポイントが近い場合
-            else if (LATdis_Rx > LATdis_Lx)
+            //既に指定ポイントなら
+            else if (ENx == LAT_Rx || ENx == LAT_Lx)
             {
-                while (ENx != LAT_Lx)
+                if (isGround)
                 {
-                    //指定ポイントまで移動
-                    posEN = Vector2.MoveTowards(posEN, posLAT_L, speed * Time.deltaTime); //移動処理
+                    //攻撃判定振る(未実装)
+                    Debug.Log("遠距離攻撃");
                 }
-            }
-
-            if (isGround)
-            {
-                //攻撃判定振る(未実装)
-                Debug.Log("長距離攻撃");
-            }
-            ATflg = true; //攻撃フラグオン
-        }
-        //攻撃フラグオフで既に指定ポイントなら
-        else if ((ENx == LAT_Rx || ENx == LAT_Lx) && ATflg == false)
-        {
-            if (isGround)
-            {
-                //攻撃判定振る(未実装)
-            }
-            ATflg = true; //攻撃フラグオン
-        }
-    }
-
-    public void Idle() //待機関数
-    {
-        //攻撃フラグがオンの最中
-        while (ATflg)
-        {
-            coolTime += Time.deltaTime; //クールタイムカウントアップ
-
-            //クールタイム経過なら
-            if (coolTime >= cool_LimTime)
-            {
-                coolTime = 0.0f; //クールタイムリセット
-                ATflg = false; //攻撃フラグオフ
-                Debug.Log("待機解除");
+                ATflg = true; //攻撃フラグオン
             }
         }
     }

@@ -13,7 +13,6 @@ public class EnemyAI : MonoBehaviour
         SHORT_ATTACK, //近距離攻撃
         MIDDLE_ATTACK, //中距離攻撃
         LONG_ATTACK, //長距離攻撃
-        IDLE, //待機
     }
 
     //変数初期化宣言
@@ -27,10 +26,16 @@ public class EnemyAI : MonoBehaviour
     //それぞれランダムに行動を決定する変数
     private int jumpnumber = 0;
     private int attacknumber = 0;
+    //コルーチンの動作状態
+    private bool isRunning = false;
 
     //ステート代入関数
     void SetAI()
     {
+        if (enemymove.ATflg)
+        {
+            StartCoroutine("Idle");
+        }
         //AIの状況判断ルーチン
         AIMainRoutine();
         //次の実行するステート代入
@@ -53,44 +58,34 @@ public class EnemyAI : MonoBehaviour
             waitflg = false;
             return;
         }
-        //ジャンプ決定変数が0で直前のステートが待機なら実行
-        if (jumpnumber == 0 && nextState == EnemyAIState.IDLE)
+        //ジャンプ決定変数が0で直前のステートがジャンプじゃ無いなら実行
+        if (jumpnumber == 0 && nextState != EnemyAIState.JUMP)
         {
             //ジャンプステート代入
             nextState = EnemyAIState.JUMP;
         }
-        //直前の実行ステートが待機かジャンプなら実行
-        if (nextState == EnemyAIState.IDLE || nextState == EnemyAIState.JUMP)
+        //攻撃決定変数の値で攻撃を選択
+        if (attacknumber == 0)
         {
-            //攻撃決定変数の値で攻撃を選択
-            if (attacknumber == 0)
-            {
-                //近距離攻撃ステートを代入
-                nextState = EnemyAIState.SHORT_ATTACK;
-            }
-            else if (attacknumber == 1)
-            {
-                //中距離攻撃ステートを代入
-                nextState = EnemyAIState.MIDDLE_ATTACK;
-            }
-            else if (attacknumber == 2)
-            {
-                //遠距離攻撃ステートを代入
-                nextState = EnemyAIState.LONG_ATTACK;
-            }
+            //近距離攻撃ステートを代入
+            nextState = EnemyAIState.SHORT_ATTACK;
+        }
+        else if (attacknumber == 1)
+        {
+            //中距離攻撃ステートを代入
+            nextState = EnemyAIState.MIDDLE_ATTACK;
+        }
+        else if (attacknumber == 2)
+        {
+            //遠距離攻撃ステートを代入
+            nextState = EnemyAIState.LONG_ATTACK;
         }
         
         
     }
 
-    //最初にSTARTより先に1度だけ呼ばれる初期化
-    void Awake() 
-    {
-        nextState = EnemyAIState.IDLE;
-    }
-
     //エネミーのAI
-    void Update() 
+    void Update()
     {
         //AIのステートセット
         SetAI();
@@ -105,6 +100,7 @@ public class EnemyAI : MonoBehaviour
             //ステートがJUMPならジャンプ関数実行
             case EnemyAIState.JUMP:
                 enemymove.Jump();
+                StartCoroutine("JumpIdle");
                 break;
             //ステートがSHORT_ATTACKなら近距離攻撃関数実行
             case EnemyAIState.SHORT_ATTACK:
@@ -112,20 +108,52 @@ public class EnemyAI : MonoBehaviour
                 break;
             //ステートがMIDDLE_ATTACKなら中距離攻撃関数実行
             case EnemyAIState.MIDDLE_ATTACK:
+                StartCoroutine("AttackCharge");
                 enemymove.MiddleAttack();
                 break;
             //ステートがLONG_ATTACKなら長距離攻撃関数実行
             case EnemyAIState.LONG_ATTACK:
                 enemymove.LongAttack();
                 break;
-            //ステートがIDLEなら待機関数実行
-            case EnemyAIState.IDLE:
-                enemymove.Idle();
-                break;
         }
     }
 
-    
+    IEnumerator AttackCharge()
+    {
+        if (isRunning)
+        yield break;
+        isRunning = true;
+
+        //２秒待機
+        yield return new WaitForSeconds(2);
+
+        isRunning = false;
+    }
+
+    IEnumerator Idle()
+    {
+        if (isRunning)
+        yield break;
+        isRunning = true;
+
+        //２秒待機
+        yield return new WaitForSeconds(2);
+        //攻撃フラグオフにする
+        enemymove.ATflg = true;
+
+        isRunning = false;
+    }
+
+    IEnumerator JumpIdle()
+    {
+        if (isRunning)
+        yield break;
+        isRunning = true;
+
+        yield return new WaitUntil(() => enemymove.isGround);
+
+        isRunning = false;
+    }
 
 }
 
